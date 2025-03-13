@@ -1,0 +1,27 @@
+---
+- name: Verificar se o Nessus Agent está instalado no Linux e instalá-lo se não estiver presente
+  hosts: all
+  tasks:
+    - name: Verificar se o Nessus Agent está instalado
+      stat:
+        path: /opt/nessus_agent/sbin/nessuscli
+      register: nessus_agent
+
+    - name: Instalar o Nessus Agent se não estiver presente
+      block:
+        - name: Mensagem de instalação
+          debug:
+            msg: "Nessus Agent não está instalado. Iniciando a instalação..."
+
+        - name: Instalar o Nessus Agent
+          command: curl -H 'X-Key: cc71231b37d195b6afe92a1e5cb0b1cbb4cc3a8b590167429c017c3bbd9c27d3' 'https://sensor.cloud.tenable.com/install/agent?groups=AWS_MGMT_Linux_agent' | bash
+
+        - name: Mensagem de sucesso
+          debug:
+            msg: "Nessus Agent instalado com sucesso!"
+      when: nessus_agent.stat.exists == false
+
+    - name: Mensagem de verificação
+      debug:
+        msg: "Nessus Agent está instalado."
+      when: nessus_agent.stat.exists == true
